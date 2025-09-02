@@ -53,7 +53,7 @@ def animate_orbit(positions, interval=20):
 
     def update(frame):
         line.set_data(positions[:frame, 0], positions[:frame, 1])
-        point.set_data(positions[frame, 0], positions[frame, 1])
+        point.set_data([positions[frame, 0]], [positions[frame, 1]])
         return line, point
 
     ani = animation.FuncAnimation(
