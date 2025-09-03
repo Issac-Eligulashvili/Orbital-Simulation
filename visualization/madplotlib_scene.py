@@ -12,10 +12,16 @@ def simulate_orbit(r0, T, dt):
 
     for _ in range(int(T / dt)):
         positions.append(r.copy())
-        a = acceleration(r)
-        r = r + v * dt
-        v = v + a * dt
-
+        a = acceleration(r)  # old acceleration
+        r_new = (
+            r + v * dt + 0.5 * a * dt**2
+        )  # update the new postion with the guess from the old acceleration
+        a_new = acceleration(
+            r_new
+        )  # get new acceleration with the new guessed position
+        v_new = v + 0.5 * (a + a_new) * dt  # calculate new velocity
+        r = r_new
+        v = v_new
     return np.array(positions)
 
 
@@ -45,8 +51,10 @@ def animate_orbit(positions, interval=20):
     (planet,) = ax.plot(0, 0, "ro", markersize=8)
 
     def init():
-        ax.set_xlim(min(positions[:, 0]), max(positions[:, 0]))
-        ax.set_ylim(min(positions[:, 1]), max(positions[:, 1]))
+        max_range = np.max(np.abs(positions))
+        ax.set_xlim(-max_range, max_range)
+        ax.set_ylim(-max_range, max_range)
+        ax.set_aspect("equal", adjustable="box")
         line.set_data([], [])
         point.set_data([], [])
         return line, point
