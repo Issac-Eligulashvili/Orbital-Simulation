@@ -1,14 +1,15 @@
 import numpy as np
-from physics.motion import acceleration, velocity
+from physics.motion import acceleration
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
+from data.constants import v0
 
 
 # loop for animation
 def simulate_orbit(r0, T, dt):
     # Get inital values for the radius and velocity
     r = np.array(r0)
-    v = velocity(r)
+    v = np.array([0, v0])
     positions = []
 
     for _ in range(int(T / dt)):
@@ -42,7 +43,7 @@ def plot_orbit(positions):
 
 
 def animate_orbit(positions, interval=20):
-    fig, ax = plt.subplots(figsize=(6, 6))
+    fig, ax = plt.subplots(figsize=(10, 6))
     fig.patch.set_facecolor("black")
     ax.set_facecolor("black")
     ax.set_aspect("equal")

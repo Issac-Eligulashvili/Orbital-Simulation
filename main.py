@@ -1,5 +1,7 @@
 from visualization.madplotlib_scene import simulate_orbit, animate_orbit
-from data.constants import corrected_rad
+from data.constants import r0_m
 
-positions = simulate_orbit([corrected_rad * 1000, 0], 6000, 1)
+positions = simulate_orbit([r0_m, 0], 6000, 20)
+
+
 animate_orbit(positions)
