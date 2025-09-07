@@ -1,24 +1,29 @@
 import numpy as np
-from vpython import sphere, vec, rate, color, scene, textures, box, cylinder, compound
+from fontTools.subset import retain_empty_scripts
+from vpython import sphere, vec, rate, color, scene, textures, button
 from physics.motion import acceleration
 from data.constants import v0
 
 SCALE = 1e6  # 1 unit = 1,000 km
 
+follow_satellite = False
+
+def toggle_follow_satellite():
+    global follow_satellite
+    follow_satellite = not follow_satellite
+
+button(Text="Follow Satellite", bind=toggle_follow_satellite)
+
 def animate_orbit_3d(r0, T, dt):
     ball = sphere(
-    pos=vec(*r0) / SCALE, radius=0.1, color=color.yellow, make_trail=True
-    )
+    pos=vec(*r0) / SCALE, radius=0.1, color=color.white, make_trail=True, trail_radius=0.02, retain=50)
     earth = sphere(pos=vec(0, 0, 0), radius=6378e3 / SCALE, texture=textures.earth)
-
     # Set background color and center of view
     scene.background = color.black
-    scene.width = 800
-    scene.height = 600
+    scene.fullscreen = True
     r = np.array(r0)
     v = np.array([0, 0, v0])
-    print(r, v)
-    for _ in range(int(T / dt)):
+    while True:
         rate(60)
 
         a = acceleration(r)  # old acceleration
