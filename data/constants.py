@@ -1,6 +1,6 @@
 import numpy as np
 
-# Set Initial Place of Sattelite
+# Set Initial Place of Satellite
 isApogee = False
 isPerigee = True
 # Mass of planet in kilograms
@@ -15,12 +15,12 @@ distance = 3000
 r0 = planetary_radius + distance
 # Corrected Radius in meters
 r0_m = r0 * 1000
-# Gravitational Paramater
+# Gravitational Parameter
 mu = planetary_mass * gravitational_constant
 # Eccentricity
 e = 0.6
 # Semi-Major Axis in m
-a = 0
+a = None
 if isApogee:
     a = r0_m / (1 + e)
 elif isPerigee:
@@ -29,3 +29,5 @@ elif isPerigee:
 v0 = np.sqrt(mu * ((2 / r0_m) - (1 / a)))
 # Period of orbit
 T = 2 * np.pi * np.sqrt(a**3 / mu)
+#Inclination of orbit in degrees
+i = 120
