@@ -1,6 +1,6 @@
 import numpy as np
 from fontTools.subset import retain_empty_scripts
-from vpython import sphere, vec, rate, color, scene, textures, button
+from vpython import sphere, vec, rate, color, scene, textures, checkbox
 from physics.motion import acceleration
 from data.constants import v0
 
@@ -8,11 +8,15 @@ SCALE = 1e6  # 1 unit = 1,000 km
 
 follow_satellite = False
 
-def toggle_follow_satellite():
+def toggle_follow_satellite(evt):
     global follow_satellite
-    follow_satellite = not follow_satellite
+    if evt.checked:
+        follow_satellite = True
+    else :
+        follow_satellite = False
+    print(follow_satellite)
 
-button(Text="Follow Satellite", bind=toggle_follow_satellite)
+checkbox(bind=toggle_follow_satellite, text="Follow Satellite", checked=False)
 
 def animate_orbit_3d(r0, T, dt):
     ball = sphere(
@@ -25,6 +29,12 @@ def animate_orbit_3d(r0, T, dt):
     v = np.array([0, 0, v0])
     while True:
         rate(60)
+
+        if follow_satellite:
+            scene.follow(ball)
+        else:
+            scene.follow(None)
+            scene.center = earth.pos
 
         a = acceleration(r)  # old acceleration
         r_new = (
