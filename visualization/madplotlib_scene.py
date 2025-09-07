@@ -33,30 +33,36 @@ def simulate_orbit(r0, T, dt):
 def plot_orbit(positions):
     plt.figure(figsize=(6, 6))
     plt.plot(positions[:, 0], positions[:, 1])
-    plt.plot(0, 0, "ro", label="Planet")
+    plt.plot(0, 0, "bo", label="Earth")
     plt.axis("equal")
     plt.xlabel("x (m)")
     plt.ylabel("y (m)")
     plt.title("Orbit Path")
     plt.legend()
+    plt.tight_layout(pad=10)
     plt.show()
 
 
 def animate_orbit(positions, interval=20):
-    fig, ax = plt.subplots(figsize=(10, 6))
+    # Initialize the grid
+    fig, ax = plt.subplots(figsize=(6, 6))
+    # Set colors
     fig.patch.set_facecolor("black")
     ax.set_facecolor("black")
+    # Make it a square
     ax.set_aspect("equal")
     ax.set_xlabel("")
     ax.set_ylabel("")
     ax.set_title("Orbit Animation")
-
-    (line,) = ax.plot([], [], lw=1)
+    # Initialize the trail of orbit
+    (line,) = ax.plot([], [], lw=1, color="white", alpha=0.3)
+    # Initialize satellite
     (point,) = ax.plot(
         [],
         [],
-        "ro",
+        "wo",
     )
+    # Initialize satellite label
     satellite_label = ax.text(
         positions[0, 0],
         positions[0, 1],
@@ -66,25 +72,33 @@ def animate_orbit(positions, interval=20):
         ha="left",
         va="bottom",
     )
+    # Plot earth and its label
     ax.plot(0, 0, "bo", markersize=10, label="Earth")  # blue Earth
     ax.text(0, 0, " Earth", color="white", fontsize=10, ha="left", va="bottom")
 
     def init():
-        max_range = np.max(np.abs(positions))
+        # Determine max-range to see how big to make graph
+        max_range = np.max(np.abs(positions)) * 1.1
+        # Set limits so picture fits within graph
         ax.set_xlim(-max_range, max_range)
         ax.set_ylim(-max_range, max_range)
+        # Make aspect ratio 1 so it doesnt stretch
         ax.set_aspect("equal", adjustable="box")
+        # Put line and point to empty and put label in 0,0
         line.set_data([], [])
         point.set_data([], [])
         satellite_label.set_position((positions[0, 0], positions[0, 1]))
         return line, point, satellite_label
 
     def update(frame):
+        # Draw line that leads upto point
         line.set_data(positions[:frame, 0], positions[:frame, 1])
+        # Move point and label one frame ahead
         point.set_data([positions[frame, 0]], [positions[frame, 1]])
         satellite_label.set_position((positions[frame, 0], positions[frame, 1]))
         return line, point, satellite_label
 
+    # Run animation
     ani = animation.FuncAnimation(
         fig, update, frames=len(positions), init_func=init, blit=True, interval=interval
     )
