@@ -1,7 +1,4 @@
-from visualization.madplotlib_scene import simulate_orbit, animate_orbit
+from visualization.vpython_scene import animate_orbit_3d
 from data.constants import r0_m, T
 
-positions = simulate_orbit([r0_m, 0], T, 20)
-
-
-animate_orbit(positions)
+animate_orbit_3d([r0_m, 0, 0], T, 1)

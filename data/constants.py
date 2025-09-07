@@ -10,7 +10,7 @@ planetary_radius = 6378
 # Newtons Gravitational Constant
 gravitational_constant = 6.67e-11
 # Starting Distance from Planet in kilometers
-distance = 500
+distance = 3000
 # Corrected Radius
 r0 = planetary_radius + distance
 # Corrected Radius in meters
@@ -18,7 +18,7 @@ r0_m = r0 * 1000
 # Gravitational Paramater
 mu = planetary_mass * gravitational_constant
 # Eccentricity
-e = 0.7
+e = 0.6
 # Semi-Major Axis in m
 a = 0
 if isApogee:
