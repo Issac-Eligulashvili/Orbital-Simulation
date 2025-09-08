@@ -2,7 +2,7 @@ import numpy as np
 from fontTools.subset import retain_empty_scripts
 from vpython import sphere, vec, rate, color, scene, textures, checkbox, wtext, slider
 from physics.motion import calculate_movement
-from data.constants import v0, i, mu, gravitational_constant
+from data.constants import v0_sat, i, mu, gravitational_constant
 import datetime
 
 SCALE = 1e6  # 1 unit = 1,000 km
@@ -19,12 +19,14 @@ def toggle_follow_satellite(evt):
 
 checkbox(bind=toggle_follow_satellite, text="Follow Satellite", checked=False)
 
-i = np.radians(i)
+i_sat = np.radians(i)
 
 #Get the amount of simulated time passed in seconds
 time_sim = 0.0
 #Set the rotation matrix based on the angle of inclination
-rotation_x_matrix = np.array([[1,0,0],[0,np.cos(i), -np.sin(i)], [0,np.sin(i), np.cos(i)]])
+def getXRotationMatrix(deg):
+    return np.array([[1,0,0],[0,np.cos(deg), -np.sin(deg)], [0,np.sin(deg), np.cos(deg)]])
+sat_rotation_matrix = getXRotationMatrix(i_sat)
 #Spacer
 wtext(text="\n\n")
 #Display elapsed time
@@ -49,26 +51,43 @@ planets = [
         "position": [0,0,0],
         'mu': mu,
         "id": 0
+    },
+    {
+        "position": [3.84e8,0,0],
+        'mu': gravitational_constant * 7.34767309e22, #calculate the mu of the planet/moon based on mass
+        "id": 1
     }
-    # {
-    #     "position": [0,0,0],
-    #     'mu': gravitational_constant * 7.34767309e22, #calculate the mu of the planet/moon based on mass
-    #     "id": 1
-    # }
 ]
 
-def animate_orbit_3d(r0, T, dt):
+def animate_orbit_3d(r0_sat, T, dt):
     global time_sim, time_display, dt_scalar
-    ball = sphere(
-    pos=vec(*r0) / SCALE, radius=0.3, color=color.white, make_trail=True, trail_radius=0.02, retain=50)
+    # Initialize the satellite sphere
+    satellite = sphere(pos=vec(*r0_sat) / SCALE, radius=0.3, color=color.white, make_trail=True, trail_radius=0.02, retain=50)
+    # Initialize earth sphere
     earth = sphere(pos=vec(0, 0, 0), radius=6378e3 / SCALE, texture=textures.earth)
-
+    # Initialize moon sphere
+    moon=sphere(pos=vec(3.84e8,0,0) / SCALE, radius=1738e3 / SCALE, texture = textures.stones)
 
     # Set background color and center of view
     scene.background = color.black
     scene.fullscreen = True
-    r = np.array(r0) @ rotation_x_matrix
-    v = np.array([0, 0, v0]) @ rotation_x_matrix
+
+    #Set the radius and velocity vectors after rotation for satellite
+    r_sat = np.array(r0_sat) @ sat_rotation_matrix
+    v_sat = np.array([0, 0, v0_sat]) @ sat_rotation_matrix
+
+    # Get the rotation matrix for the moon
+    moon_rotation_matrix = getXRotationMatrix(5.15)
+
+    # Orbital parameters for the moon
+    e_moon = 0.55
+    a_moon = 3.84e8 / (1-e_moon)
+    v0_moon = np.sqrt(mu * ((2 / 3.84e8) - (1 / a_moon)))
+
+    #Set the radius and velocity vectors after rotation for the moon
+    r_moon = np.array([3.84e8,0,0]) @ moon_rotation_matrix
+    v_moon = np.array([0, 0, v0_moon]) @ moon_rotation_matrix
+
     while True:
         rate(60)
         dt_eff = dt * dt_scalar
@@ -79,7 +98,7 @@ def animate_orbit_3d(r0, T, dt):
         #Update the elapsed time widget text
         time_display.text = f"Elapsed time: {str(datetime.timedelta(seconds=time_sim))}"
         if follow_satellite:
-            scene.follow(ball)
+            scene.follow(satellite)
         else:
             scene.follow(None)
             scene.center = earth.pos
@@ -90,10 +109,10 @@ def animate_orbit_3d(r0, T, dt):
 
 
         for _ in range(steps):
-            r,v = calculate_movement(r,v,sub_dt,None, planets)
-
-
+            r_sat,v_sat = calculate_movement(r_sat,v_sat,sub_dt,None, planets)
+            r_moon,v_moon = calculate_movement(r_moon,v_moon,sub_dt,1, planets)
 
         # change the satellite position
-        ball.pos = vec(*r) / SCALE
+        satellite.pos = vec(*r_sat) / SCALE
+        moon.pos = vec(*r_moon) / SCALE
 

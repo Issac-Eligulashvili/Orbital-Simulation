@@ -26,7 +26,7 @@ if isApogee:
 elif isPerigee:
     a = r0_m / (1 - e)
 # Initial Velocity based on semi-major axis and eccentricity
-v0 = np.sqrt(mu * ((2 / r0_m) - (1 / a)))
+v0_sat = np.sqrt(mu * ((2 / r0_m) - (1 / a)))
 # Period of orbit
 T = 2 * np.pi * np.sqrt(a**3 / mu)
 #Inclination of orbit in degrees
