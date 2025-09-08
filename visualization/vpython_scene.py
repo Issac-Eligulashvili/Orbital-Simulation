@@ -66,16 +66,24 @@ def animate_orbit_3d(r0, T, dt):
             scene.follow(None)
             scene.center = earth.pos
 
-        a = acceleration(r)  # old acceleration
-        r_new = (
-            r + v * dt_eff + 0.5 * a * dt_eff**2
-        )  # update the new position with the guess from the old acceleration
-        a_new = acceleration(
-            r_new
-        )  # get new acceleration with the new guessed position
-        v_new = v + 0.5 * (a + a_new) * dt_eff  # calculate new velocity
-        # Update the radius and velocity variables
-        r = r_new
-        v = v_new
+        #Calculate number of steps for sub-stepping
+        steps = int(np.ceil(dt_eff / dt))
+        sub_dt = dt_eff / steps
+
+
+        for _ in range(steps):
+            a = acceleration(r)  # old acceleration
+            r_new = (
+                    r + v * sub_dt + 0.5 * a * sub_dt ** 2
+            )  # update the new position with the guess from the old acceleration
+            a_new = acceleration(
+                r_new
+            )  # get new acceleration with the new guessed position
+            v_new = v + 0.5 * (a + a_new) * sub_dt  # calculate new velocity
+            # Update the radius and velocity variables
+            r = r_new
+            v = v_new
+
         # change the satellite position
-        ball.pos = vec(*r_new) / SCALE
+        ball.pos = vec(*r) / SCALE
+
