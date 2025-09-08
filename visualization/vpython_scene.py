@@ -40,7 +40,7 @@ def scale(evt):
     dt_scalar = min_value + (max_value - min_value) * evt.value #Map true value based on 0-1 value of slider
     dt_slider_text.text = "{:1.2f}".format(dt_scalar) #Update text
 
-dt_scalar_slider = slider(bind=scale, minval=0, maxval=1, value=0.01)
+dt_scalar_slider = slider(bind=scale, minval=0, maxval=1, value=0.1)
 
 dt_slider_text = wtext(text="{:1.2f}".format(dt_scalar_slider.value * 10))
 
@@ -49,12 +49,12 @@ planets = [
         "position": [0,0,0],
         'mu': mu,
         "id": 0
-    },
-    {
-        "position": [0,0,0],
-        'mu': gravitational_constant * 7.34767309e22, #calculate the mu of the planet/moon based on mass
-        "id": 1
     }
+    # {
+    #     "position": [0,0,0],
+    #     'mu': gravitational_constant * 7.34767309e22, #calculate the mu of the planet/moon based on mass
+    #     "id": 1
+    # }
 ]
 
 def animate_orbit_3d(r0, T, dt):
