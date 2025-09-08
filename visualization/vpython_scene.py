@@ -24,9 +24,11 @@ i_sat = np.radians(i)
 #Get the amount of simulated time passed in seconds
 time_sim = 0.0
 #Set the rotation matrix based on the angle of inclination
-def getXRotationMatrix(deg):
-    return np.array([[1,0,0],[0,np.cos(deg), -np.sin(deg)], [0,np.sin(deg), np.cos(deg)]])
-sat_rotation_matrix = getXRotationMatrix(i_sat)
+def get_rotation_matrix(rad):
+    return np.array([[1, 0, 0],
+                     [0, np.cos(rad), -np.sin(rad)],
+                     [0, np.sin(rad), np.cos(rad)]])
+sat_rotation_matrix = get_rotation_matrix(i_sat)
 #Spacer
 wtext(text="\n\n")
 #Display elapsed time
@@ -77,11 +79,11 @@ def animate_orbit_3d(r0_sat, T, dt):
     scene.fullscreen = True
 
     #Set the radius and velocity vectors after rotation for satellite
-    r_sat = sat_rotation_matrix @ np.array(r0_sat)
-    v_sat = sat_rotation_matrix @ np.array([0, v0_sat, 0])
+    r_sat = np.array(r0_sat)
+    v_sat = sat_rotation_matrix @ np.array([0, 0, v0_sat])
 
     # Get the rotation matrix for the moon
-    moon_rotation_matrix = getXRotationMatrix(5.15)
+    moon_rotation_matrix = get_rotation_matrix(np.radians(5.15))
 
     # Orbital parameters for the moon
     e_moon = 0.055
@@ -89,8 +91,8 @@ def animate_orbit_3d(r0_sat, T, dt):
     v0_moon = np.sqrt(mu * ((2 / 3.84e8) - (1 / a_moon)))
 
     #Set the radius and velocity vectors after rotation for the moon
-    r_moon = np.array([3.84e8,0,0]) @ moon_rotation_matrix
-    v_moon = np.array([0, v0_moon, 0]) @ moon_rotation_matrix
+    r_moon = np.array([3.84e8,0,0])
+    v_moon = moon_rotation_matrix @ np.array([0, v0_moon, 0])
 
     while True:
         rate(60)
