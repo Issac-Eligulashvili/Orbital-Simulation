@@ -1,6 +1,6 @@
 import numpy as np
 from fontTools.subset import retain_empty_scripts
-from vpython import sphere, vec, rate, color, scene, textures, checkbox, wtext, slider
+from vpython import sphere, vec, rate, color, scene, textures, checkbox, wtext, slider, arrow
 from physics.motion import calculate_movement
 from data.constants import v0_sat, i, mu, gravitational_constant
 import datetime
@@ -58,6 +58,10 @@ planets = [
         "id": 1
     }
 ]
+# Draw plane vectors to debug
+arrow(pos=vec(0,0,0), axis=vec(1 * 6378e4 / SCALE ,0,0), color=color.red, shaftwidth=0.05)   # +X (red)
+arrow(pos=vec(0,0,0), axis=vec(0,1 * 6378e4 / SCALE,0), color=color.green, shaftwidth=0.05) # +Y (green)
+arrow(pos=vec(0,0,0), axis=vec(0,0,1 * 6378e4 / SCALE), color=color.blue, shaftwidth=0.05)  # +Z (blue)
 
 def animate_orbit_3d(r0_sat, T, dt):
     global time_sim, time_display, dt_scalar
@@ -73,20 +77,20 @@ def animate_orbit_3d(r0_sat, T, dt):
     scene.fullscreen = True
 
     #Set the radius and velocity vectors after rotation for satellite
-    r_sat = np.array(r0_sat) @ sat_rotation_matrix
-    v_sat = np.array([0, 0, v0_sat]) @ sat_rotation_matrix
+    r_sat = sat_rotation_matrix @ np.array(r0_sat)
+    v_sat = sat_rotation_matrix @ np.array([0, v0_sat, 0])
 
     # Get the rotation matrix for the moon
     moon_rotation_matrix = getXRotationMatrix(5.15)
 
     # Orbital parameters for the moon
-    e_moon = 0.55
+    e_moon = 0.055
     a_moon = 3.84e8 / (1-e_moon)
     v0_moon = np.sqrt(mu * ((2 / 3.84e8) - (1 / a_moon)))
 
     #Set the radius and velocity vectors after rotation for the moon
     r_moon = np.array([3.84e8,0,0]) @ moon_rotation_matrix
-    v_moon = np.array([0, 0, v0_moon]) @ moon_rotation_matrix
+    v_moon = np.array([0, v0_moon, 0]) @ moon_rotation_matrix
 
     while True:
         rate(60)
@@ -114,5 +118,5 @@ def animate_orbit_3d(r0_sat, T, dt):
 
         # change the satellite position
         satellite.pos = vec(*r_sat) / SCALE
-        moon.pos = vec(*r_moon) / SCALE
+        moon.pos = vec(*r_moon) * 0.15 / SCALE #Scale the visual distance of the moon so that its visible while keeping math accurate
 

@@ -30,4 +30,4 @@ v0_sat = np.sqrt(mu * ((2 / r0_m) - (1 / a)))
 # Period of orbit
 T = 2 * np.pi * np.sqrt(a**3 / mu)
 #Inclination of orbit in degrees
-i = 120
+i = 0
