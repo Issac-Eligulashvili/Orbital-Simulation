@@ -12,11 +12,11 @@ def acceleration(r_vec, mu):
 def calculate_movement(r_vec, v_vec, dt, id, planets):
     acceleration_vectors = []
     for planet in planets:
-        if planet.id == id:
+        if planet["id"] == id:
             continue
         else:
-            r = np.subtract(planet.position, r_vec)
-            acceleration_vectors.append(acceleration(r, planet.mu))
+            r = np.subtract(planet["position"], r_vec)
+            acceleration_vectors.append(acceleration(r, planet["mu"]))
 
     a = np.add.reduce(acceleration_vectors)
 
@@ -26,11 +26,11 @@ def calculate_movement(r_vec, v_vec, dt, id, planets):
     )  # update the new position with the guess from the old acceleration
     acceleration_vectors = []
     for planet in planets:
-        if planet.id == id:
+        if planet["id"] == id:
             continue
         else:
-            r = np.subtract(planet.position, r_new)
-            acceleration_vectors.append(acceleration(r, planet.mu))
+            r = np.subtract(planet["position"], r_new)
+            acceleration_vectors.append(acceleration(r, planet["mu"]))
 
     a_new = np.add.reduce(acceleration_vectors) # get new acceleration with the new guessed position
     v_new = v_vec + 0.5 * (a + a_new) * dt  # calculate new velocity
