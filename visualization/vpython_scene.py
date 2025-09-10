@@ -2,8 +2,10 @@ import numpy as np
 from fontTools.subset import retain_empty_scripts
 from vpython import sphere, vec, rate, color, scene, textures, checkbox, wtext, slider, arrow
 from physics.motion import calculate_movement
-from data.constants import v0_sat, i, mu, gravitational_constant
+from data.constants import Config
 import datetime
+
+cfg = Config()
 
 SCALE = 1e6  # 1 unit = 1,000 km
 
@@ -19,7 +21,7 @@ def toggle_follow_satellite(evt):
 
 checkbox(bind=toggle_follow_satellite, text="Follow Satellite", checked=False)
 
-i_sat = np.radians(i)
+i_sat = np.radians(cfg.i)
 
 #Get the amount of simulated time passed in seconds
 time_sim = 0.0
@@ -51,12 +53,12 @@ dt_slider_text = wtext(text="{:1.2f}".format(dt_scalar_slider.value * 10))
 planets = [
     {
         "position": [0,0,0],
-        'mu': mu,
+        'mu': cfg.mu,
         "id": 0
     },
     {
         "position": [3.84e8,0,0],
-        'mu': gravitational_constant * 7.34767309e22, #calculate the mu of the planet/moon based on mass
+        'mu': cfg.GRAVITATIONAL_CONSTANT * 7.34767309e22, #calculate the mu of the planet/moon based on mass
         "id": 1
     }
 ]
@@ -80,7 +82,7 @@ def animate_orbit_3d(r0_sat, T, dt):
 
     #Set the radius and velocity vectors after rotation for satellite
     r_sat = np.array(r0_sat)
-    v_sat = sat_rotation_matrix @ np.array([0, 0, v0_sat])
+    v_sat = sat_rotation_matrix @ np.array([0, 0, cfg.v0_sat])
 
     # Get the rotation matrix for the moon
     moon_rotation_matrix = get_rotation_matrix(np.radians(5.15))
@@ -88,7 +90,7 @@ def animate_orbit_3d(r0_sat, T, dt):
     # Orbital parameters for the moon
     e_moon = 0.055
     a_moon = 3.84e8 / (1-e_moon)
-    v0_moon = np.sqrt(mu * ((2 / 3.84e8) - (1 / a_moon)))
+    v0_moon = np.sqrt(cfg.mu * ((2 / 3.84e8) - (1 / a_moon)))
 
     #Set the radius and velocity vectors after rotation for the moon
     r_moon = np.array([3.84e8,0,0])

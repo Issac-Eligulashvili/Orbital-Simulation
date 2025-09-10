@@ -1,4 +1,6 @@
 from visualization.vpython_scene import animate_orbit_3d
-from data.constants import r0_m, T
+from data.constants import Config
 
-animate_orbit_3d([r0_m, 0, 0], T, 20)
+cfg = Config()
+
+animate_orbit_3d([cfg.r0_m, 0, 0], cfg.T, 20)
