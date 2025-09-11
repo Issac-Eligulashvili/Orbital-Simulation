@@ -1,74 +1,70 @@
 import numpy as np
-from fontTools.subset import retain_empty_scripts
 from vpython import sphere, vec, rate, color, scene, textures, checkbox, wtext, slider, arrow
 from physics.motion import calculate_movement
-from data.constants import Config
 import datetime
 
-cfg = Config()
+def animate_orbit_3d(r0_sat, T, dt, cfg):
+    running = cfg.running
 
-SCALE = 1e6  # 1 unit = 1,000 km
+    SCALE = 1e6  # 1 unit = 1,000 km
 
-follow_satellite = False
+    follow_satellite = False
 
-def toggle_follow_satellite(evt):
-    global follow_satellite
-    if evt.checked:
-        follow_satellite = True
-    else :
-        follow_satellite = False
-    print(follow_satellite)
+    def toggle_follow_satellite(evt):
+        nonlocal follow_satellite
+        if evt.checked:
+            follow_satellite = True
+        else:
+            follow_satellite = False
 
-checkbox(bind=toggle_follow_satellite, text="Follow Satellite", checked=False)
+    checkbox(bind=toggle_follow_satellite, text="Follow Satellite", checked=False)
 
-i_sat = np.radians(cfg.i)
+    i_sat = np.radians(cfg.i)
 
-#Get the amount of simulated time passed in seconds
-time_sim = 0.0
-#Set the rotation matrix based on the angle of inclination
-def get_rotation_matrix(rad):
-    return np.array([[1, 0, 0],
-                     [0, np.cos(rad), -np.sin(rad)],
-                     [0, np.sin(rad), np.cos(rad)]])
-sat_rotation_matrix = get_rotation_matrix(i_sat)
-#Spacer
-wtext(text="\n\n")
-#Display elapsed time
-time_display = wtext(text="Elapsed time: 0s")
-#Spacer
-wtext(text="\n\n")
-#Set the slider for the speed of the animation
-dt_scalar = 1
-min_value = 0.25 #minimum value of slider
-max_value = 10 # Maximum value of slider
-def scale(evt):
-    global dt_scalar
-    dt_scalar = min_value + (max_value - min_value) * evt.value #Map true value based on 0-1 value of slider
-    dt_slider_text.text = "{:1.2f}".format(dt_scalar) #Update text
+    # Get the amount of simulated time passed in seconds
+    time_sim = 0.0
 
-dt_scalar_slider = slider(bind=scale, minval=0, maxval=1, value=0.1)
+    # Set the rotation matrix based on the angle of inclination
+    def get_rotation_matrix(rad):
+        return np.array([[1, 0, 0],
+                         [0, np.cos(rad), -np.sin(rad)],
+                         [0, np.sin(rad), np.cos(rad)]])
 
-dt_slider_text = wtext(text="{:1.2f}".format(dt_scalar_slider.value * 10))
+    sat_rotation_matrix = get_rotation_matrix(i_sat)
+    # Spacer
+    wtext(text="\n\n")
+    # Display elapsed time
+    time_display = wtext(text="Elapsed time: 0s")
+    # Spacer
+    wtext(text="\n\n")
+    # Set the slider for the speed of the animation
+    dt_scalar = 1
+    min_value = 0.25  # minimum value of slider
+    max_value = 10  # Maximum value of slider
 
-planets = [
-    {
-        "position": [0,0,0],
-        'mu': cfg.mu,
-        "id": 0
-    },
-    {
-        "position": [3.84e8,0,0],
-        'mu': cfg.GRAVITATIONAL_CONSTANT * 7.34767309e22, #calculate the mu of the planet/moon based on mass
-        "id": 1
-    }
-]
-# Draw plane vectors to debug
-arrow(pos=vec(0,0,0), axis=vec(1 * 6378e4 / SCALE ,0,0), color=color.red, shaftwidth=0.05)   # +X (red)
-arrow(pos=vec(0,0,0), axis=vec(0,1 * 6378e4 / SCALE,0), color=color.green, shaftwidth=0.05) # +Y (green)
-arrow(pos=vec(0,0,0), axis=vec(0,0,1 * 6378e4 / SCALE), color=color.blue, shaftwidth=0.05)  # +Z (blue)
+    def scale(evt):
+        nonlocal  dt_scalar
+        dt_scalar = min_value + (max_value - min_value) * evt.value  # Map true value based on 0-1 value of slider
+        dt_slider_text.text = "{:1.2f}".format(dt_scalar)  # Update text
 
-def animate_orbit_3d(r0_sat, T, dt):
-    global time_sim, time_display, dt_scalar
+    dt_scalar_slider = slider(bind=scale, minval=0, maxval=1, value=0.1)
+
+    dt_slider_text = wtext(text="{:1.2f}".format(dt_scalar_slider.value * 10))
+
+    planets = [
+        {
+            "position": [0, 0, 0],
+            'mu': cfg.mu,
+            "id": 0
+        },
+        {
+            "position": [3.84e8, 0, 0],
+            'mu': cfg.GRAVITATIONAL_CONSTANT * 7.34767309e22,  # calculate the mu of the planet/moon based on mass
+            "id": 1
+        }
+    ]
+
+
     # Initialize the satellite sphere
     satellite = sphere(pos=vec(*r0_sat) / SCALE, radius=0.3, color=color.white, make_trail=True, trail_radius=0.02, retain=50)
     # Initialize earth sphere
@@ -96,7 +92,7 @@ def animate_orbit_3d(r0_sat, T, dt):
     r_moon = np.array([3.84e8,0,0])
     v_moon = moon_rotation_matrix @ np.array([0, v0_moon, 0])
 
-    while True:
+    while running:
         rate(60)
         dt_eff = dt * dt_scalar
         #Update the total elapsed time in seconds
@@ -123,4 +119,3 @@ def animate_orbit_3d(r0_sat, T, dt):
         # change the satellite position
         satellite.pos = vec(*r_sat) / SCALE
         moon.pos = vec(*r_moon) * 0.15 / SCALE #Scale the visual distance of the moon so that its visible while keeping math accurate
-

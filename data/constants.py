@@ -16,6 +16,8 @@ class Config:
         self.e = 0.6
         # Inclination of orbit in degrees
         self.i = 0
+        # Control the state of the animation
+        self.running = True
     @property
     # Corrected Radius
     def r0(self):
