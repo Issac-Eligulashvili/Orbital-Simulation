@@ -1,6 +1,15 @@
-from visualization.vpython_scene import animate_orbit_3d
+import atexit
+
+from visualization.vpython_scene import step_orbit, initialize_scene
 from data.constants import Config
 
+Config.clear_flag()
 cfg = Config()
 
-animate_orbit_3d([cfg.r0_m, 0, 0], cfg.T, 20, cfg)
+
+state = initialize_scene(cfg, [cfg.r0_m, 0, 0], 20)
+
+while Config.is_running():
+    step_orbit(state)
+
+atexit.register(Config.clear_flag())

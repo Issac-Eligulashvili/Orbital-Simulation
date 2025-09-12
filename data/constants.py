@@ -1,6 +1,26 @@
 import numpy as np
+import tempfile
+import os
 
 class Config:
+    CONTROL_FILE = os.path.join(tempfile.gettempdir(), 'simulation_control.flag')
+
+    @classmethod
+    def is_running(cls):
+        print("check")
+        return not os.path.exists(cls.CONTROL_FILE)
+
+    @classmethod
+    def stop(cls):
+        print("stopping...")
+        with open(cls.CONTROL_FILE, 'w') as f:
+            f.write(str("stop"))
+
+    @classmethod
+    def clear_flag(cls):
+        print("starting...")
+        if os.path.exists(cls.CONTROL_FILE):
+            os.remove(cls.CONTROL_FILE)
     def __init__(self):
         # Set Initial Place of Satellite
         self.STARTING_LOCATION = "perigee"
@@ -16,8 +36,6 @@ class Config:
         self.e = 0.6
         # Inclination of orbit in degrees
         self.i = 0
-        # Control the state of the animation
-        self.running = True
     @property
     # Corrected Radius
     def r0(self):

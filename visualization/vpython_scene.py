@@ -1,55 +1,39 @@
 import numpy as np
-from vpython import sphere, vec, rate, color, scene, textures, checkbox, wtext, slider, arrow
+from vpython import sphere, vec, rate, color, scene, textures, checkbox, wtext, slider
 from physics.motion import calculate_movement
 import datetime
 
-def animate_orbit_3d(r0_sat, T, dt, cfg):
-    running = cfg.running
+def initialize_scene(cfg, r0_sat, dt):
 
-    SCALE = 1e6  # 1 unit = 1,000 km
+    unit_scale = 1e6  # 1 unit = 1,000 km
 
-    follow_satellite = False
+    #UI State
+    follow_satellite = {"value": False}
 
     def toggle_follow_satellite(evt):
-        nonlocal follow_satellite
-        if evt.checked:
-            follow_satellite = True
-        else:
-            follow_satellite = False
+        follow_satellite["value"] = evt.checked
 
     checkbox(bind=toggle_follow_satellite, text="Follow Satellite", checked=False)
 
-    i_sat = np.radians(cfg.i)
-
-    # Get the amount of simulated time passed in seconds
-    time_sim = 0.0
-
-    # Set the rotation matrix based on the angle of inclination
-    def get_rotation_matrix(rad):
-        return np.array([[1, 0, 0],
-                         [0, np.cos(rad), -np.sin(rad)],
-                         [0, np.sin(rad), np.cos(rad)]])
-
-    sat_rotation_matrix = get_rotation_matrix(i_sat)
-    # Spacer
     wtext(text="\n\n")
     # Display elapsed time
     time_display = wtext(text="Elapsed time: 0s")
     # Spacer
     wtext(text="\n\n")
-    # Set the slider for the speed of the animation
-    dt_scalar = 1
+
+    dt_scalar = {"value": 1.0}
     min_value = 0.25  # minimum value of slider
     max_value = 10  # Maximum value of slider
 
     def scale(evt):
         nonlocal  dt_scalar
-        dt_scalar = min_value + (max_value - min_value) * evt.value  # Map true value based on 0-1 value of slider
-        dt_slider_text.text = "{:1.2f}".format(dt_scalar)  # Update text
+        dt_scalar["value"] = min_value + (max_value - min_value) * evt.value  # Map true value based on 0-1 value of slider
+        dt_slider_text.text = "{:1.2f}".format(dt_scalar["value"])  # Update text
 
     dt_scalar_slider = slider(bind=scale, minval=0, maxval=1, value=0.1)
-
     dt_slider_text = wtext(text="{:1.2f}".format(dt_scalar_slider.value * 10))
+
+    # Scene Objects
 
     planets = [
         {
@@ -64,19 +48,26 @@ def animate_orbit_3d(r0_sat, T, dt, cfg):
         }
     ]
 
-
     # Initialize the satellite sphere
-    satellite = sphere(pos=vec(*r0_sat) / SCALE, radius=0.3, color=color.white, make_trail=True, trail_radius=0.02, retain=50)
+    satellite = sphere(pos=vec(*r0_sat) / unit_scale, radius=0.3, color=color.white, make_trail=True, trail_radius=0.02,
+                       retain=50)
     # Initialize earth sphere
-    earth = sphere(pos=vec(0, 0, 0), radius=6378e3 / SCALE, texture=textures.earth)
+    earth = sphere(pos=vec(0, 0, 0), radius=6378e3 / unit_scale, texture=textures.earth)
     # Initialize moon sphere
-    moon=sphere(pos=vec(3.84e8,0,0) / SCALE, radius=1738e3 / SCALE, texture = textures.stones)
+    moon = sphere(pos=vec(3.84e8, 0, 0) / unit_scale, radius=1738e3 / unit_scale, texture=textures.stones)
 
-    # Set background color and center of view
-    scene.background = color.black
-    scene.fullscreen = True
+    # Get the inclination in radians
+    i_sat = np.radians(cfg.i)
 
-    #Set the radius and velocity vectors after rotation for satellite
+    # Set the rotation matrix based on the angle of inclination
+    def get_rotation_matrix(rad):
+        return np.array([[1, 0, 0],
+                         [0, np.cos(rad), -np.sin(rad)],
+                         [0, np.sin(rad), np.cos(rad)]])
+
+    sat_rotation_matrix = get_rotation_matrix(i_sat)
+
+    # Set the radius and velocity vectors after rotation for satellite
     r_sat = np.array(r0_sat)
     v_sat = sat_rotation_matrix @ np.array([0, 0, cfg.v0_sat])
 
@@ -85,37 +76,56 @@ def animate_orbit_3d(r0_sat, T, dt, cfg):
 
     # Orbital parameters for the moon
     e_moon = 0.055
-    a_moon = 3.84e8 / (1-e_moon)
+    a_moon = 3.84e8 / (1 - e_moon)
     v0_moon = np.sqrt(cfg.mu * ((2 / 3.84e8) - (1 / a_moon)))
 
-    #Set the radius and velocity vectors after rotation for the moon
-    r_moon = np.array([3.84e8,0,0])
+    # Set the radius and velocity vectors after rotation for the moon
+    r_moon = np.array([3.84e8, 0, 0])
     v_moon = moon_rotation_matrix @ np.array([0, v0_moon, 0])
 
-    while running:
-        rate(60)
-        dt_eff = dt * dt_scalar
-        #Update the total elapsed time in seconds
-        time_sim += float(dt_eff)
-        #Calculate earths rotation based on elapsed time in seconds
-        earth.rotate(angle=2*np.pi/86400 * dt_eff, axis=vec(0, 1, 0))
-        #Update the elapsed time widget text
-        time_display.text = f"Elapsed time: {str(datetime.timedelta(seconds=time_sim))}"
-        if follow_satellite:
-            scene.follow(satellite)
-        else:
-            scene.follow(None)
-            scene.center = earth.pos
+    return {
+        "cfg": cfg,
+        "dt": dt,
+        "time_sim": 0.0,
+        "follow_satellite": follow_satellite,
+        "dt_scalar": dt_scalar,
+        "time_display": time_display,
+        "earth": earth,
+        "satellite": satellite,
+        "moon": moon,
+        "r_sat": r_sat,
+        "v_sat": v_sat,
+        "r_moon": r_moon,
+        "v_moon": v_moon,
+        "planets": planets,
+        "unit_scale": unit_scale,
+    }
 
-        #Calculate number of steps for sub-stepping
-        steps = int(np.ceil(dt_eff / dt))
-        sub_dt = dt_eff / steps
+def step_orbit(state):
+    rate(60)
 
+    dt_eff = state["dt"] * state["dt_scalar"]["value"]
+    state["time_sim"] += dt_eff
 
-        for _ in range(steps):
-            r_sat,v_sat = calculate_movement(r_sat,v_sat,sub_dt,None, planets)
-            r_moon,v_moon = calculate_movement(r_moon,v_moon,sub_dt,1, planets)
+    # Earth Rotation
+    state["earth"].rotate(angle=2*np.pi/86400 * dt_eff, axis=vec(0, 1, 0))
+    state["time_display"].text = f"Elapsed time: {str(datetime.timedelta(seconds=state['time_sim']))}"
 
-        # change the satellite position
-        satellite.pos = vec(*r_sat) / SCALE
-        moon.pos = vec(*r_moon) * 0.15 / SCALE #Scale the visual distance of the moon so that its visible while keeping math accurate
+    if state["follow_satellite"]["value"]:
+        scene.follow(state["satellite"])
+    else:
+        scene.follow(None)
+        scene.center = state["earth"].pos
+
+    # Calculate number of steps for sub-stepping
+    steps = int(np.ceil(dt_eff / state["dt"]))
+    sub_dt = dt_eff / steps
+
+    for _ in range(steps):
+        state["r_sat"], state["v_sat"] = calculate_movement(state["r_sat"], state["v_sat"], sub_dt, None, state["planets"])
+        state["r_moon"], state["v_moon"] = calculate_movement(state["r_moon"], state["v_moon"], sub_dt, 1, state["planets"])
+
+    # Update the visuals of the sim
+    state["satellite"].pos = vec(*state["r_sat"]) / state["unit_scale"]
+    state["moon"].pos = vec(*state["r_moon"]) * 0.15 / state["unit_scale"]
+
