@@ -4,10 +4,10 @@ import os
 
 class Config:
     CONTROL_FILE = os.path.join(tempfile.gettempdir(), 'simulation_control.flag')
+    IMAGE_FILE = os.path.join(tempfile.gettempdir(), 'simulation_image.flag')
 
     @classmethod
     def is_running(cls):
-        print("check")
         return not os.path.exists(cls.CONTROL_FILE)
 
     @classmethod
@@ -17,10 +17,30 @@ class Config:
             f.write(str("stop"))
 
     @classmethod
-    def clear_flag(cls):
+    def clear_running_flag(cls):
         print("starting...")
         if os.path.exists(cls.CONTROL_FILE):
             os.remove(cls.CONTROL_FILE)
+    @classmethod
+    def clear_image_flag(cls):
+        print("starting...")
+        if os.path.exists(cls.IMAGE_FILE):
+            os.remove(cls.IMAGE_FILE)
+
+    @classmethod
+    def enable_save(cls):
+        with open(cls.IMAGE_FILE, 'w') as f:
+            f.write("save")
+
+    @classmethod
+    def disable_save(cls):
+        if os.path.exists(cls.IMAGE_FILE):
+            os.remove(cls.IMAGE_FILE)
+
+    @classmethod
+    def check_image_flag(cls):
+        return os.path.exists(cls.IMAGE_FILE)
+
     def __init__(self):
         # Set Initial Place of Satellite
         self.STARTING_LOCATION = "perigee"
@@ -36,6 +56,7 @@ class Config:
         self.e = 0.6
         # Inclination of orbit in degrees
         self.i = 0
+
     @property
     # Corrected Radius
     def r0(self):
@@ -63,3 +84,8 @@ class Config:
     # Period of orbit
     def T(self):
         return  2 * np.pi * np.sqrt(self.a ** 3 / self.mu)
+
+    @property
+    def IMAGE_CAPTURE_TIME(self):
+        print(self.T)
+        return self.T / 3600

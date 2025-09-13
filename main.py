@@ -1,15 +1,22 @@
-import atexit
+import atexit, os
+import time
 
-from visualization.vpython_scene import step_orbit, initialize_scene
+from visualization.pyvista_scene import initialize_scene, step_animation
 from data.constants import Config
+from data.config_instance import cfg
 
-Config.clear_flag()
-cfg = Config()
-
+Config.clear_running_flag()
+Config.clear_image_flag()
 
 state = initialize_scene(cfg, [cfg.r0_m, 0, 0], 20)
+state["plotter"].show(auto_close=False, interactive_update=True)
 
-while Config.is_running():
-    step_orbit(state)
+def start():
+    while Config.is_running():
+            step_animation(state)
+            time.sleep(0.001)
 
-atexit.register(Config.clear_flag())
+start()
+
+
+atexit.register(Config.clear_running_flag)
